@@ -42,21 +42,45 @@ export function addPieceToBoard(board, piece, position) {
     return newBoard;
 }
 
-export function clearLines(board) {
-    let linesCleared = 0;
-    const newBoard = board.filter(row => {
-        if (row.every(cell => cell === 1)) {
-            linesCleared++;
-            return false;
-        }
-        return true;
-    });
-    
-    while (newBoard.length < BOARD_HEIGHT) {
-        newBoard.unshift(Array(BOARD_WIDTH).fill(0));
+export function moveDown(board, piece, position) {
+    const newPosition = { ...position, y: position.y + 1 };
+    if (isValidMove(board, piece, newPosition)) {
+        return newPosition;
     }
     
-    return { newBoard, linesCleared };
+    // If we can't move down, merge the piece into the board
+    console.log('Merging piece into board at position:', position);
+    const newBoard = mergePiece(board, piece, position);
+    console.log('Board after merge:', newBoard);
+    return false;
+}
+
+export function mergePiece(board, piece, position) {
+    const newBoard = board.map(row => [...row]);
+    piece.shape.forEach((row, y) => {
+        row.forEach((value, x) => {
+            if (value) {
+                if (newBoard[y + position.y] && newBoard[y + position.y][x + position.x] !== undefined) {
+                    newBoard[y + position.y][x + position.x] = value;
+                }
+            }
+        });
+    });
+    console.log('Checking for completed lines...');
+    return clearLines(newBoard);
+}
+
+export function clearLines(board) {
+    const newBoard = board.filter(row => !row.every(cell => cell));
+    const clearedLines = board.length - newBoard.length;
+    console.log(`Cleared ${clearedLines} lines`);
+    
+    // Add new empty lines at the top
+    while (newBoard.length < board.length) {
+        newBoard.unshift(new Array(board[0].length).fill(0));
+    }
+    
+    return newBoard;
 }
 
 export function calculateScore(linesCleared, level) {

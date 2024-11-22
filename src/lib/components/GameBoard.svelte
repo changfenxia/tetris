@@ -1,6 +1,6 @@
 <script>
     import { onMount, createEventDispatcher } from 'svelte';
-    import { BOARD_WIDTH, BOARD_HEIGHT, BLOCK_SIZE } from '../constants';
+    import { BOARD_WIDTH, BOARD_HEIGHT, BLOCK_SIZE, STATHAM_FACE } from '../constants';
     
     export let board = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(0));
     export let currentPiece;
@@ -15,13 +15,15 @@
     onMount(() => {
         ctx = canvas.getContext('2d');
         stathamFace = new Image();
-        stathamFace.src = '/images/statham-face.jpg';
+        stathamFace.src = STATHAM_FACE;
         stathamFace.onload = () => {
+            console.log('Statham image loaded successfully');
             imageLoaded = true;
             draw();
         };
-        stathamFace.onerror = () => {
-            console.error('Failed to load Statham face image');
+        stathamFace.onerror = (e) => {
+            console.error('Failed to load Statham image:', e);
+            console.error('Attempted image path:', STATHAM_FACE);
             imageLoaded = false;
             draw();
         };

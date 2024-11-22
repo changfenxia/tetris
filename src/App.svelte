@@ -1,87 +1,85 @@
 <script>
     import { onMount, onDestroy } from 'svelte';
+    import { BOARD_WIDTH, BOARD_HEIGHT, TETROMINOS } from './lib/constants';
+    import { isValidMove, moveDown, mergePiece, clearLines, calculateScore } from './lib/game';
     import GameBoard from './lib/components/GameBoard.svelte';
     import NextPiece from './lib/components/NextPiece.svelte';
     import ScoreBoard from './lib/components/ScoreBoard.svelte';
     import StathamEffect from './lib/components/StathamEffect.svelte';
-    import {
-        createBoard,
-        getRandomTetromino,
-        isValidMove,
-        addPieceToBoard,
-        clearLines,
-        calculateScore,
-        calculateLevel,
-        calculateDropTime,
-        rotatePiece
-    } from './lib/game';
 
-    let board = createBoard();
-    let currentPiece = getRandomTetromino();
-    let nextPiece = getRandomTetromino();
-    let currentPosition = { x: 4, y: 0 };
+    let board = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(0));
+    let currentPiece = null;
+    let nextPiece = null;
+    let currentPosition = { x: 0, y: 0 };
     let score = 0;
-    let lines = 0;
     let level = 0;
+    let lines = 0;
+    let gameLoop;
     let gameOver = false;
     let paused = false;
     let showStathamEffect = false;
-    let dropInterval;
+
+    function getRandomPiece() {
+        const pieces = Object.keys(TETROMINOS);
+        const piece = TETROMINOS[pieces[Math.floor(Math.random() * pieces.length)]];
+        return { ...piece };
+    }
 
     function startGame() {
-        if (gameOver) {
-            board = createBoard();
-            currentPiece = getRandomTetromino();
-            nextPiece = getRandomTetromino();
-            currentPosition = { x: 4, y: 0 };
-            score = 0;
-            lines = 0;
-            level = 0;
-            gameOver = false;
-        }
-        paused = false;
-        setupDropInterval();
-    }
-
-    function setupDropInterval() {
-        clearInterval(dropInterval);
-        dropInterval = setInterval(drop, calculateDropTime(level));
-    }
-
-    function drop() {
-        if (paused || gameOver) return;
-
-        const newPosition = { ...currentPosition, y: currentPosition.y + 1 };
+        console.log('Starting game...');
+        if (gameLoop) clearInterval(gameLoop);
         
-        if (isValidMove(board, currentPiece, newPosition)) {
+        board = Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(0));
+        currentPiece = getRandomPiece();
+        nextPiece = getRandomPiece();
+        currentPosition = { x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 };
+        score = 0;
+        level = 0;
+        lines = 0;
+        gameOver = false;
+        paused = false;
+        
+        gameLoop = setInterval(update, 1000 - (level * 50));
+        console.log('Game loop started');
+    }
+
+    function update() {
+        if (paused || gameOver) return;
+        
+        console.log('Game update tick');
+        const newPosition = moveDown(board, currentPiece, currentPosition);
+        
+        if (newPosition) {
             currentPosition = newPosition;
         } else {
-            // Lock the piece
-            board = addPieceToBoard(board, currentPiece, currentPosition);
+            console.log('Piece landed');
+            // Merge current piece
+            board = mergePiece(board, currentPiece, currentPosition);
             
-            // Check for cleared lines
-            const { newBoard, linesCleared } = clearLines(board);
-            
-            if (linesCleared > 0) {
+            // Check for completed lines
+            const clearedLines = clearLines(board);
+            if (clearedLines > 0) {
+                console.log(`Cleared ${clearedLines} lines`);
+                lines += clearedLines;
+                score += calculateScore(clearedLines, level);
+                level = Math.floor(lines / 10);
                 showStathamEffect = true;
-                setTimeout(() => showStathamEffect = false, 3000);
                 
-                board = newBoard;
-                lines += linesCleared;
-                score += calculateScore(linesCleared, level);
-                level = calculateLevel(lines);
-                setupDropInterval();
+                // Update game speed
+                clearInterval(gameLoop);
+                gameLoop = setInterval(update, 1000 - (level * 50));
             }
             
             // Get next piece
             currentPiece = nextPiece;
-            nextPiece = getRandomTetromino();
-            currentPosition = { x: 4, y: 0 };
+            nextPiece = getRandomPiece();
+            currentPosition = { x: Math.floor(BOARD_WIDTH / 2) - 1, y: 0 };
             
             // Check for game over
             if (!isValidMove(board, currentPiece, currentPosition)) {
+                console.log('Game Over!');
                 gameOver = true;
-                clearInterval(dropInterval);
+                clearInterval(gameLoop);
             }
         }
     }
@@ -89,53 +87,60 @@
     function handleKeydown(event) {
         if (gameOver || paused) return;
 
+        // Prevent default behavior for game control keys
+        if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' ', 'p', 'P'].includes(event.key)) {
+            event.preventDefault();
+        }
+        
         switch (event.key) {
-            case 'ArrowLeft': {
-                const newPosition = { ...currentPosition, x: currentPosition.x - 1 };
-                if (isValidMove(board, currentPiece, newPosition)) {
-                    currentPosition = newPosition;
+            case 'ArrowLeft':
+                if (isValidMove(board, currentPiece, { ...currentPosition, x: currentPosition.x - 1 })) {
+                    currentPosition = { ...currentPosition, x: currentPosition.x - 1 };
                 }
                 break;
-            }
-            case 'ArrowRight': {
-                const newPosition = { ...currentPosition, x: currentPosition.x + 1 };
-                if (isValidMove(board, currentPiece, newPosition)) {
-                    currentPosition = newPosition;
+            case 'ArrowRight':
+                if (isValidMove(board, currentPiece, { ...currentPosition, x: currentPosition.x + 1 })) {
+                    currentPosition = { ...currentPosition, x: currentPosition.x + 1 };
                 }
                 break;
-            }
-            case 'ArrowDown': {
-                drop();
-                break;
-            }
-            case 'ArrowUp': {
-                const rotated = rotatePiece(currentPiece);
+            case 'ArrowUp':
+                const rotated = {
+                    ...currentPiece,
+                    shape: currentPiece.shape[0].map((_, i) =>
+                        currentPiece.shape.map(row => row[i]).reverse()
+                    )
+                };
                 if (isValidMove(board, rotated, currentPosition)) {
                     currentPiece = rotated;
                 }
                 break;
-            }
-            case ' ': {
+            case 'ArrowDown':
+                const newPos = { ...currentPosition, y: currentPosition.y + 1 };
+                if (isValidMove(board, currentPiece, newPos)) {
+                    currentPosition = newPos;
+                }
+                break;
+            case ' ':
+                // Hard drop
                 while (isValidMove(board, currentPiece, { ...currentPosition, y: currentPosition.y + 1 })) {
                     currentPosition = { ...currentPosition, y: currentPosition.y + 1 };
                 }
-                drop();
                 break;
-            }
-            case 'p': {
+            case 'p':
+            case 'P':
                 paused = !paused;
                 break;
-            }
         }
     }
 
     onMount(() => {
         window.addEventListener('keydown', handleKeydown);
+        startGame();
     });
 
     onDestroy(() => {
-        clearInterval(dropInterval);
         window.removeEventListener('keydown', handleKeydown);
+        if (gameLoop) clearInterval(gameLoop);
     });
 </script>
 
