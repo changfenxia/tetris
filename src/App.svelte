@@ -57,11 +57,13 @@
             board = mergePiece(board, currentPiece, currentPosition);
             
             // Check for completed lines
-            const clearedLines = clearLines(board);
-            if (clearedLines > 0) {
-                console.log(`Cleared ${clearedLines} lines`);
-                lines += clearedLines;
-                score += calculateScore(clearedLines, level);
+            const { board: newBoard, linesCleared } = clearLines(board);
+            board = newBoard;
+            
+            if (linesCleared > 0) {
+                console.log(`Cleared ${linesCleared} lines`);
+                lines += linesCleared;
+                score += calculateScore(linesCleared, level);
                 level = Math.floor(lines / 10);
                 showStathamEffect = true;
                 

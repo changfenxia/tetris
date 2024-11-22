@@ -47,11 +47,6 @@ export function moveDown(board, piece, position) {
     if (isValidMove(board, piece, newPosition)) {
         return newPosition;
     }
-    
-    // If we can't move down, merge the piece into the board
-    console.log('Merging piece into board at position:', position);
-    const newBoard = mergePiece(board, piece, position);
-    console.log('Board after merge:', newBoard);
     return false;
 }
 
@@ -66,21 +61,22 @@ export function mergePiece(board, piece, position) {
             }
         });
     });
-    console.log('Checking for completed lines...');
-    return clearLines(newBoard);
+    return newBoard;
 }
 
 export function clearLines(board) {
-    const newBoard = board.filter(row => !row.every(cell => cell));
+    let newBoard = board.filter(row => !row.every(cell => cell));
     const clearedLines = board.length - newBoard.length;
-    console.log(`Cleared ${clearedLines} lines`);
     
     // Add new empty lines at the top
     while (newBoard.length < board.length) {
         newBoard.unshift(new Array(board[0].length).fill(0));
     }
     
-    return newBoard;
+    return {
+        board: newBoard,
+        linesCleared: clearedLines
+    };
 }
 
 export function calculateScore(linesCleared, level) {
