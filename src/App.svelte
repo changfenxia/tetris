@@ -151,11 +151,11 @@
             <NextPiece piece={nextPiece} />
             <ScoreBoard score={score} level={level} lines={lines} />
             <div class="controls">
-                <button on:click={startGame}>
+                <button on:click={startGame} tabindex="-1">
                     {gameOver ? 'New Game' : paused ? 'Resume' : 'Start'}
                 </button>
                 {#if !gameOver && !paused}
-                    <button on:click={() => paused = true}>Pause</button>
+                    <button on:click={() => paused = true} tabindex="-1">Pause</button>
                 {/if}
             </div>
         </div>
@@ -204,6 +204,12 @@
         color: white;
         cursor: pointer;
         transition: background-color 0.2s;
+        pointer-events: auto;
+        user-select: none;
+    }
+
+    button:focus {
+        outline: none;
     }
 
     button:hover {

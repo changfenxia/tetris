@@ -6,6 +6,18 @@ export default defineConfig({
   plugins: [svelte()],
   base: '/tetris/',
   build: {
-    outDir: 'build'
-  }
+    outDir: 'build',
+    assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name.endsWith('.jpg')) {
+            return 'images/[name][extname]';
+          }
+          return 'assets/[name]-[hash][extname]';
+        }
+      }
+    }
+  },
+  publicDir: 'public'
 })
