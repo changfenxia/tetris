@@ -49,6 +49,10 @@
 
 <style>
     .effect-container {
+        position: absolute;
+        left: 100%; /* Размещаем справа от game-container */
+        top: 0;
+        margin-left: 30px; /* Увеличили отступ */
         width: 300px;
         padding: 20px;
         background-color: rgba(42, 42, 42, 0.95);

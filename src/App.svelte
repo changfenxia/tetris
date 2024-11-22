@@ -155,11 +155,11 @@
 <main>
     <div class="game-container">
         <div class="game-board">
-            <GameBoard board={board} currentPiece={currentPiece} currentPosition={currentPosition} />
+            <GameBoard {board} {currentPiece} {currentPosition} />
         </div>
         <div class="game-sidebar">
             <NextPiece piece={nextPiece} />
-            <ScoreBoard score={score} level={level} lines={lines} />
+            <ScoreBoard {score} {level} {lines} />
             <div class="controls">
                 <button on:click={startGame} tabindex="-1">
                     {gameOver ? 'New Game' : paused ? 'Resume' : 'Start'}
@@ -168,8 +168,8 @@
                     <button on:click={() => paused = true} tabindex="-1">Pause</button>
                 {/if}
             </div>
-            <StathamEffect show={showStathamEffect} />
         </div>
+        <StathamEffect show={showStathamEffect} />
     </div>
 </main>
 
@@ -185,20 +185,29 @@
 
     .game-container {
         display: flex;
-        gap: 20px;
+        gap: 30px;
         align-items: flex-start;
+        position: relative;
     }
 
     .game-board {
         background-color: #2a2a2a;
-        padding: 20px;
+        padding: 10px;
         border-radius: 10px;
+        width: 340px;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
     }
 
     .game-sidebar {
         display: flex;
         flex-direction: column;
         gap: 20px;
+        width: 200px;
+        background-color: #2a2a2a;
+        padding: 20px;
+        border-radius: 10px;
     }
 
     .controls {
@@ -218,6 +227,7 @@
         transition: background-color 0.2s;
         pointer-events: auto;
         user-select: none;
+        width: 100%;
     }
 
     button:focus {

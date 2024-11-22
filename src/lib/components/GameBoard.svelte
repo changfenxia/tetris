@@ -104,9 +104,15 @@
 
 <style>
     .game-board-container {
+        display: grid;
+        grid-template-columns: repeat(10, 30px);
+        grid-template-rows: repeat(20, 30px);
+        gap: 1px;
+        background-color: #1a1a1a;
         padding: 10px;
-        background-color: #2a2a2a;
         border-radius: 5px;
+        width: fit-content;
+        margin: 0 auto;
     }
 
     .game-board {
