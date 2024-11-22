@@ -38,6 +38,7 @@
         lines = 0;
         gameOver = false;
         paused = false;
+        showStathamEffect = false;
         
         gameLoop = setInterval(update, 1000 - (level * 50));
         console.log('Game loop started');
@@ -61,11 +62,16 @@
             board = newBoard;
             
             if (linesCleared > 0) {
-                console.log(`Cleared ${linesCleared} lines`);
                 lines += linesCleared;
                 score += calculateScore(linesCleared, level);
                 level = Math.floor(lines / 10);
-                showStathamEffect = true;
+                
+                // Сначала сбрасываем эффект, чтобы он мог появиться снова
+                showStathamEffect = false;
+                // Используем setTimeout, чтобы дать время на обновление состояния
+                setTimeout(() => {
+                    showStathamEffect = true;
+                }, 50);
                 
                 // Update game speed
                 clearInterval(gameLoop);
@@ -148,8 +154,10 @@
 
 <main>
     <div class="game-container">
-        <StathamEffect show={showStathamEffect} />
-        <div class="game-info">
+        <div class="game-board">
+            <GameBoard board={board} currentPiece={currentPiece} currentPosition={currentPosition} />
+        </div>
+        <div class="game-sidebar">
             <NextPiece piece={nextPiece} />
             <ScoreBoard score={score} level={level} lines={lines} />
             <div class="controls">
@@ -160,8 +168,8 @@
                     <button on:click={() => paused = true} tabindex="-1">Pause</button>
                 {/if}
             </div>
+            <StathamEffect show={showStathamEffect} />
         </div>
-        <GameBoard board={board} currentPiece={currentPiece} currentPosition={currentPosition} />
     </div>
 </main>
 
@@ -169,23 +177,25 @@
     main {
         display: flex;
         justify-content: center;
-        align-items: center;
+        align-items: flex-start;
         min-height: 100vh;
-        background-color: #1a1a1a;
         padding: 20px;
+        background-color: #1a1a1a;
     }
 
     .game-container {
         display: flex;
         gap: 20px;
-        background-color: #2a2a2a;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         align-items: flex-start;
     }
 
-    .game-info {
+    .game-board {
+        background-color: #2a2a2a;
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+    .game-sidebar {
         display: flex;
         flex-direction: column;
         gap: 20px;

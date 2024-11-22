@@ -6,35 +6,44 @@
     
     let canvas;
     let ctx;
-    let stathamFace;
     
-    $: canvasWidth = piece ? piece.shape[0].length * BLOCK_SIZE : BLOCK_SIZE * 4;
-    $: canvasHeight = piece ? piece.shape.length * BLOCK_SIZE : BLOCK_SIZE * 4;
+    // Фиксированный размер 6x6 блоков для любой фигуры
+    const PREVIEW_SIZE = 6;
+    const canvasSize = PREVIEW_SIZE * BLOCK_SIZE;
 
     onMount(() => {
         ctx = canvas.getContext('2d');
-        stathamFace = new Image();
-        stathamFace.src = '/images/statham-face.jpg';
         draw();
     });
 
     function draw() {
         if (!ctx || !piece) return;
         
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Clear canvas
+        ctx.clearRect(0, 0, canvasSize, canvasSize);
         
+        // Calculate centering offsets
+        const pieceWidth = piece.shape[0].length;
+        const pieceHeight = piece.shape.length;
+        const offsetX = Math.floor((PREVIEW_SIZE - pieceWidth) / 2);
+        const offsetY = Math.floor((PREVIEW_SIZE - pieceHeight) / 2);
+        
+        // Draw piece
         piece.shape.forEach((row, y) => {
             row.forEach((value, x) => {
                 if (value) {
-                    drawBlock(x * BLOCK_SIZE, y * BLOCK_SIZE);
+                    drawBlock(
+                        (offsetX + x) * BLOCK_SIZE,
+                        (offsetY + y) * BLOCK_SIZE
+                    );
                 }
             });
         });
     }
 
     function drawBlock(x, y) {
-        const pattern = ctx.createPattern(stathamFace, 'repeat');
-        ctx.fillStyle = pattern;
+        // Fill with the same gray color as in GameBoard
+        ctx.fillStyle = '#666';
         ctx.fillRect(x, y, BLOCK_SIZE, BLOCK_SIZE);
         ctx.strokeStyle = '#000';
         ctx.strokeRect(x, y, BLOCK_SIZE, BLOCK_SIZE);
@@ -49,25 +58,29 @@
     <h3>Next Piece</h3>
     <canvas
         bind:this={canvas}
-        width={canvasWidth}
-        height={canvasHeight}
-        class="next-piece-canvas"
+        width={canvasSize}
+        height={canvasSize}
     />
 </div>
 
 <style>
     .next-piece {
-        border: 2px solid #333;
-        padding: 10px;
-        background-color: #f0f0f0;
+        background-color: #2a2a2a;
+        padding: 15px;
+        border-radius: 10px;
         text-align: center;
+        margin-bottom: 20px;
+        width: fit-content;
     }
 
     h3 {
+        color: white;
         margin: 0 0 10px 0;
     }
 
-    .next-piece-canvas {
-        background-color: #fff;
+    canvas {
+        background-color: #1a1a1a;
+        border-radius: 5px;
+        display: block;
     }
 </style>
