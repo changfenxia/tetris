@@ -19,11 +19,14 @@ export const STATHAM_QUOTES = [
 ];
 
 export const STATHAM_IMAGES = [
-    '/images/statham1.jpg',
-    '/images/statham2.jpg',
-    '/images/statham3.jpg',
-    '/images/statham4.jpg',
+    '/tetris/images/statham1.jpg',
+    '/tetris/images/statham2.jpg',
+    '/tetris/images/statham3.jpg',
+    '/tetris/images/statham4.jpg',
 ];
+
+export const STATHAM_FACE = '/tetris/images/statham-face.jpg';
+export const STATHAM_FACE_BIG = '/tetris/images/statham-face-big.jpg';
 
 export const TETROMINOS = {
     I: {
